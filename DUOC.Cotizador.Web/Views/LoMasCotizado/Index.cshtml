@@ -1,0 +1,25 @@
+﻿
+@{
+    ViewBag.Title = "Los Productos Mas Cotizados";
+}
+
+<h2>Index</h2>
+
+<form method="post" id="frm-cotizacion">
+    <div class="form-group">
+        <label for="recipient-name" class="control-label">Fecha Calculo Dolar</label>
+        @Html.TextBox("fechas", DateTime.Now, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "text" })
+    </div>
+    <div class="box-footer">
+        <button type="submit" id="btnsubmit" class="btn btn-primary pull-right"> Generar Cotización</button>
+    </div>
+</form>
+@section Scripts {
+    <script type="text/javascript">
+    $(document).ready(function () {
+        var schema = "@this.Request.Url.Scheme";
+        var base_url = "@this.Request.Url.Authority";
+        $('#fechas').daterangepicker();
+    });
+        </script>
+    }

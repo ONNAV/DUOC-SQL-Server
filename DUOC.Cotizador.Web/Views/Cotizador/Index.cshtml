@@ -1,0 +1,136 @@
+﻿
+@{
+    ViewBag.Title = "Cotizador";
+}
+
+<h2>Ingreso Cotización</h2>
+<form method="post" id="frm-cotizacion">
+    <div class="form-group">
+        <label for="recipient-name" class="control-label">Proveedor</label>
+        @Html.DropDownList("ProveedorID", (MultiSelectList)ViewBag.Proveedores, new { multiple = "multiple", @class = "select2" })
+    </div>
+    <div class="form-group">
+        <label for="recipient-name" class="control-label">Productos</label>
+        @Html.DropDownList("ProductoID", (MultiSelectList)ViewBag.Productos, new { multiple = "multiple", @class = "select2" })
+    </div>
+    <div class="form-group">
+        <label for="recipient-name" class="control-label">Fecha Calculo Dolar</label>
+        @Html.TextBox("txtJoiningDate", DateTime.Now, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+    </div>
+    <div class="box-footer">
+        <button type="submit" id="btnsubmit" class="btn btn-primary pull-right"> Generar Cotización</button>
+    </div>
+</form>
+<div class="invoice">
+    <div class="row">
+        <div class="col-xs-12">
+            <h2 class="page-header">
+                <i class="fa fa-university"></i> Detalle Cotización
+            </h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+                <table class="table table-bordered cobcolpg" id="tblCotizacion">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Producto</th>
+                                <th>Valor $</th>
+                                <th>Fecha Cambio</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+            </div>
+        </div>
+    <br>
+    <br>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var schema = "@this.Request.Url.Scheme";
+            var base_url = "@this.Request.Url.Authority";
+            $("#ProductoID").select2({
+                ajax: {
+                    url: schema + "://" + base_url + "/Cotizador/getProductos",
+                    dataType: 'json',
+                    delay: 0,
+                    cache: true,
+                    data: function (params) {
+                        return {
+                            q: params.term,
+                            page: params.page,
+                            prov: $("#ProveedorID").val()
+                        };
+                    },
+                    processResults: function (data, params) {
+                        return {
+                            results: data
+                        };
+                    },
+                    complete: function (d) {
+                        console.log(d);
+                    }
+                },
+                escapeMarkup: function (markup) {
+                    return markup;
+                }
+            });
+
+            $("#frm-cotizacion").submit(function (event) {
+                $.ajax({
+                    url: schema + "://" + base_url + "/Cotizador/generarCotizacion",
+                    type: "POST",
+                    data: $(this).serialize(),
+                    dataType: 'JSON',
+                    beforeSend: function () {
+                        $('#btnsubmit').html('<i class="fa fa-circle-o-notch fa-spin fa-lg"></i> Cargando...');
+                        $('#btnsubmit').attr('disabled', true);
+                    },
+                    success: function (data) {
+                        $('#btnsubmit').html('<i class="fa fa-circle-o-notch fa-spin fa-lg"></i> Generar Cotización');
+                        $('#btnsubmit').attr('disabled', false);
+                        TBL(data.ID);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log("ERROR:" + jqXHR.responseText);
+                    }
+                });
+                event.preventDefault();
+            });
+
+            function TBL(id) {
+                var data = $("#tblCotizacion").DataTable();
+                data.destroy();
+                $('#tblCotizacion').DataTable({
+                    "serverSide": true,
+                    "bRetrieve": true,
+                    "bLengthChange": true,
+                    "bFilter": false,
+                    "bSort": false,
+                    "bInfo": true,
+                    "bAutoWidth": true,
+                    "createdRow": function (row, data, index) {
+                        $('td', row).eq(2).addClass('text-center');
+                        $('td', row).eq(3).addClass('text-center');
+                    },
+                    columns: [
+                    { data: "Proveedor" },
+                    { data: "Producto" },
+                    { data: "ValorPesos" },
+                    { data: "ValorCambio" }
+                    ],
+                    "ajax": {
+                        url: schema + "://" + base_url + "/Cotizador/generarCotizacionTBL/" + id,
+                        type: "post",
+                        dataType: "JSON"
+                    }
+                });
+            }
+        });
+    </script>
+}
+
