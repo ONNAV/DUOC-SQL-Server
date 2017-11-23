@@ -11,5 +11,6 @@ namespace DUOC.Cotizador.Web.Models
         public string Producto { get; set; }
         public int ValorPesos { get; set; }
         public string ValorCambio { get; set; }
+        public int Total { get; set; }
     }
 }

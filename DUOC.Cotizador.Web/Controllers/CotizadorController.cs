@@ -33,10 +33,11 @@ namespace DUOC.Cotizador.Web.Controllers
 
                 while (reader.Read())
                 {
-                    SelectModels s = new SelectModels();
-                    s.id = Convert.ToInt32(reader["IDProducto"]);
-                    s.text = reader["NombreProducto"].ToString();
-                    listaProductos.Add(s);
+                    listaProductos.Add(new SelectModels
+                    {
+                        id = Convert.ToInt32(reader["IDProducto"]),
+                        text = reader["NombreProducto"].ToString()
+                    });
                 }
             }
             return Json(listaProductos, JsonRequestBehavior.AllowGet);
@@ -51,7 +52,7 @@ namespace DUOC.Cotizador.Web.Controllers
             parametros.Add(new SqlParameter("@IDProductos", productos.ToString()));
             parametros.Add(new SqlParameter("@FechaCalculo", fechaCalculo.ToString()));
             var id = BaseController.ExecuteScalar("SP_GeneraCotizacion '" + productos.ToString() + "', '" + fechaCalculo.ToString() + "'");
-
+            Conexion.Cerrar();
             return Json(new { ID = id }, JsonRequestBehavior.AllowGet);
         }
 
@@ -69,7 +70,7 @@ namespace DUOC.Cotizador.Web.Controllers
                 {
                     Proveedor = reader["PROVEEDOR"].ToString(),
                     Producto = reader["NombreProducto"].ToString(),
-                    ValorPesos = Convert.ToInt32(reader["VALOR_PESOS"]),
+                    ValorPesos = (int)(Int64)reader["VALOR_PESOS"],
                     ValorCambio = Convert.ToDateTime(reader["FechaCambio"]).ToString("dd-MM-yyyy")
                 };
                 listaProductos.Add(c);
@@ -80,7 +81,5 @@ namespace DUOC.Cotizador.Web.Controllers
             dataTable.recordsFiltered = listaProductos.Count();
             return Json(dataTable, JsonRequestBehavior.AllowGet);
         }
-
-
     }
 }

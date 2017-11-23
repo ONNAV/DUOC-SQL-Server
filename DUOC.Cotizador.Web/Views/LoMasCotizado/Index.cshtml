@@ -3,23 +3,90 @@
     ViewBag.Title = "Los Productos Mas Cotizados";
 }
 
-<h2>Index</h2>
+<h2>Reporte Productos Mas Cotizados</h2>
 
 <form method="post" id="frm-cotizacion">
     <div class="form-group">
-        <label for="recipient-name" class="control-label">Fecha Calculo Dolar</label>
+        <label for="recipient-name" class="control-label">Proveedor</label>
+        @Html.DropDownList("ProveedorID", (MultiSelectList)ViewBag.Proveedores, new { multiple = "multiple", @class = "select2" })
+    </div>
+    <div class="form-group">
+        <label for="recipient-name" class="control-label">Fechas de cotización</label>
         @Html.TextBox("fechas", DateTime.Now, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "text" })
     </div>
     <div class="box-footer">
-        <button type="submit" id="btnsubmit" class="btn btn-primary pull-right"> Generar Cotización</button>
+        <button type="button" id="btnsubmit" class="btn btn-primary pull-right"> Generar</button>
     </div>
 </form>
+<div class="invoice">
+    <div class="row">
+        <div class="col-xs-12">
+            <h2 class="page-header">
+                <i class="fa fa-university"></i> Detalle
+            </h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <table class="table table-bordered cobcolpg" id="tblCotizaciones">
+                <thead>
+                    <tr>
+                        <th>Proveedor</th>
+                        <th>Producto</th>
+                        <th>Valor $</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <br>
+    <br>
+</div>
+
+
 @section Scripts {
     <script type="text/javascript">
     $(document).ready(function () {
         var schema = "@this.Request.Url.Scheme";
         var base_url = "@this.Request.Url.Authority";
         $('#fechas').daterangepicker();
+
+
+        $("#btnsubmit").click(function () {
+            var data = $("#tblCotizaciones").DataTable();
+            data.destroy();
+            $('#tblCotizaciones').DataTable({
+                "serverSide": true,
+                "bRetrieve": true,
+                "bLengthChange": true,
+                "bFilter": false,
+                "bSort": false,
+                "bInfo": true,
+                "bAutoWidth": true,
+                "bPaginate": false,
+                "createdRow": function (row, data, index) {
+                    $('td', row).eq(2).addClass('text-center');
+                    $('td', row).eq(3).addClass('text-center');
+                },
+                columns: [
+                    { data: "Proveedor" },
+                    { data: "Producto" },
+                    { data: "ValorPesos" },
+                    { data: "Total" }
+                ],
+                "ajax": {
+                    url: schema + "://" + base_url + "/LoMasCotizado/CotizacionesTBL",
+                    type: "post",
+                    dataType: "JSON",
+                    data: { fechas: $("#fechas").val(), prov: $("#ProveedorID").val() },
+                    complete: function (d) {
+                        console.log(d);
+                    }
+                }
+            });
+        });
     });
-        </script>
-    }
+    </script>
+}
